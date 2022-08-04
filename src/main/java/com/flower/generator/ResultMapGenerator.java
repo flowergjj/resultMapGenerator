@@ -3,7 +3,6 @@ package com.flower.generator;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.flower.bean.Person;
 import com.github.jeffreyning.mybatisplus.anno.MppMultiId;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
@@ -55,7 +54,8 @@ public class ResultMapGenerator {
      * @return
      * @throws Exception
      */
-    public static Map<String, Object> analyze(Class clazz) throws Exception {
+
+    private static Map<String, Object> analyzeClass(Class clazz) throws  Exception{
         Map<String, Object> contentMap = new HashMap();
         List<Map<String, Object>> idList = new ArrayList(16);
         List<Map<String, Object>> columnList = new ArrayList(16);
@@ -130,7 +130,7 @@ public class ResultMapGenerator {
                                         HashMap<String, Object> collectionMap = new HashMap();
                                         collectionMap.put(PROPERTY, collectionProperty);
                                         collectionMap.put(OF_TYPE, classFullName);
-                                        Map<String, Object> generator = analyze(actualTypeArgument);
+                                        Map<String, Object> generator = analyzeClass(actualTypeArgument);
                                         collectionMap.putAll(generator);
                                         collectionList.add(collectionMap);
                                     }
@@ -141,7 +141,7 @@ public class ResultMapGenerator {
                                 HashMap<String, Object> associationMap = new HashMap();
                                 associationMap.put(PROPERTY, associationProperty);
                                 associationMap.put(JAVA_TYPE, classFullName);
-                                Map<String, Object> generator = analyze(propertyClass);
+                                Map<String, Object> generator = analyzeClass(propertyClass);
                                 associationMap.putAll(generator);
                                 associationList.add(associationMap);
                             }
@@ -160,10 +160,11 @@ public class ResultMapGenerator {
     /**
      * 根据map调用freemarker模板生成resultMap字符串
      *
-     * @param xmlMap
+     * @param clazz
      * @return
      */
-    public static String generator(Map<String, Object> xmlMap) throws Exception {
+    public static String generator(Class clazz) throws Exception {
+        Map<String, Object> xmlMap = analyzeClass(clazz);
         resultMap.putAll(xmlMap);
         //1.创建配置类
         Configuration configuration = new Configuration(Configuration.getVersion());
@@ -202,7 +203,7 @@ public class ResultMapGenerator {
      * @return
      * @throws Exception
      */
-    public static String format(String str) throws Exception {
+    private static String format(String str) throws Exception {
         SAXReader reader = new SAXReader();
         // System.out.println(reader);
         // 注释：创建一个串的字符输入流
@@ -223,11 +224,5 @@ public class ResultMapGenerator {
         // 注释：返回我们格式化后的结果
         return out.toString();
 
-    }
-    public static void main(String[] args) throws Exception {
-        /*注意Person类所在的包目录结构,避免生成的ResultMap到实际项目中不可用*/
-        Map<String, Object> xmlMap = analyze(Person.class);
-        String xmlStr = generator(xmlMap);
-        System.out.println(xmlStr);
     }
 }
